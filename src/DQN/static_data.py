@@ -8,9 +8,9 @@ destination_num = 3
 window_time = 195
 
 
-req_info_path = r"G:\停车数据\原始数据备份\11月份处理\1206-全部信息.csv"
-r_mk_path = r"G:\停车数据\原始数据备份\11月份处理\1206-rmk.csv"
-charge_fee_path = r"G:\停车数据\原始数据备份\11月份处理\1128_charge_fee.csv"
+# req_info_path = "src/demand/1206-全部信息.csv"
+# r_mk_path = "src/demand/1206-rmk.csv"
+# charge_fee_path = "src/demand/1128_charge_fee.csv"
 
 # 设计停车相关的矩阵
 # parking lot 1: 100 OPS  15 CPS  115
@@ -80,4 +80,16 @@ w_2 = 0.01 # 单位：CNY/s，步行时间损耗
 v_walk = 1.2 # 单位：m/s，步行速度
 
 
+#------------------------slot2dest's distance--------------------------#
+slot2dest = np.zeros((destination_num,total_slot))
+slot2dest[0,:pl1_total] = 580
+slot2dest[0,pl1_total:pl1_total+pl2_total] = 630
+slot2dest[0,pl1_total+pl2_total:] = 620
 
+slot2dest[1,:pl1_total] = 590
+slot2dest[1,pl1_total:pl1_total+pl2_total] = 550
+slot2dest[1,pl1_total+pl2_total:] = 380
+
+slot2dest[2,:pl1_total] = 600
+slot2dest[2,pl1_total:pl1_total+pl2_total] = 400
+slot2dest[2,pl1_total+pl2_total:] = 560

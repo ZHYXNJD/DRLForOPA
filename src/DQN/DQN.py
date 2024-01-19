@@ -18,10 +18,11 @@ slot_index = [park_slot_index, charge_slot_index]  # 两类索引集合
 window_time = sd.window_time  # 将时间离散化后的时间间隔总数 这里是195（15min为单位）
 total_request = 2120  # 2000个普通请求+120个充电请求
 
-req_info = pd.read_csv(sd.req_info_path)
-req_revenue = np.array((req_info['parking_t'].fillna(0) + req_info['char_t'].fillna(0)).values, dtype=int)
-req_type = np.array(req_info["charge_label"], dtype=int)
-rmk = np.array(pd.read_csv(sd.r_mk_path))
+# req_info = pd.read_csv(sd.req_info_path)
+# req_revenue = np.array((req_info['parking_t'].fillna(0) + req_info['char_t'].fillna(0)).values, dtype=int)
+# req_type = np.array(req_info["charge_label"], dtype=int)
+# rmk = np.array(pd.read_csv(sd.r_mk_path))
+
 
 # 即时决策的话
 # 停车场泊位供应状态 + 一个需求信息 + 需求种类
@@ -69,7 +70,7 @@ def dqn(n_episode=15, episode_length=total_request, eps_start=1.0, eps_end=0.01,
         for t in range(episode_length):
             curr_invalid_choice = get_invalid_actions(env_state)
             action = agent.act(agent_state,curr_invalid_choice,eps)
-            next_state, reward, cum_rewards, done = env.step(action)
+            next_state, reward, done = env.step(action)
             next_env_state = deepcopy(next_state)
             next_invalid_choice = get_invalid_actions(next_env_state)
             next_agent_state = new_state(next_env_state)
@@ -79,8 +80,6 @@ def dqn(n_episode=15, episode_length=total_request, eps_start=1.0, eps_end=0.01,
             score += reward
             if done:
                 break
-        env.close()
-        gc.collect()
         scores.append(score)
         eps = max(eps_end, eps_decay * eps)
         if i_episode % 2 == 0:

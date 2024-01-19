@@ -1,7 +1,7 @@
 import functools
 import sys
 from collections import defaultdict
-
+from pathlib import Path
 import gymnasium as gym
 import pandas as pd
 from gymnasium import spaces
@@ -15,10 +15,36 @@ total_request = 2120
 window_time = 195
 # window_time = 1440
 
-req_info = pd.read_csv(sd.req_info_path)
-req_revenue = list(np.array((req_info['parking_t'].fillna(0) + req_info['char_t'].fillna(0)).values, dtype=int))
+def get_demand_data():
+    # 获取当前脚本所在的目录
+    script_dir = Path(__file__).resolve().parent
+
+    # 构建demand文件夹的路径
+    demand_folder = script_dir.parent.parent / 'demand'
+
+    # 读取文件1的数据
+    req_info_path = demand_folder / '1206-全部信息.csv'
+    # 读取文件2的数据
+    rmk_path = demand_folder / '1206-rmk.csv'
+    # 读取文件3的数据
+    charge_fee_path = demand_folder / '1128_charge_fee.csv'
+
+    return [req_info_path, rmk_path, charge_fee_path]
+
+
+[req_info_path,rmk_path,charge_fee_path] = get_demand_data()
+
+req_info = pd.read_csv(req_info_path)
+# req_revenue = list(np.array((req_info['parking_t'].fillna(0) + req_info['char_t'].fillna(0)).values, dtype=int))
 req_type = list(np.array(req_info['charge_label'], dtype=int))
-rmk = np.array(pd.read_csv(sd.r_mk_path))  # 请求时间矩阵
+rmk = np.array(pd.read_csv(rmk_path))  # 请求时间矩阵
+charge_fee = pd.read_csv(charge_fee_path)[:window_time]
+destination = req_info['dest']
+revenue = []
+for i in range(2120):
+    revenue.append((1 + 1.5* np.sum(rmk[i,:]) + req_type[i] * np.matmul(rmk[i,:],charge_fee/4)).values[0])
+
+lzd = sd.slot2dest  # dest_num * slot_num
 
 park_lot_num = sd.total_slot
 park_slot_index = sd.ops_index
@@ -57,10 +83,16 @@ class OPA(gym.Env):
         self.total_request = total_request
         self.rewards = 0
         self._cumulative_rewards = 0
-        self.dones = False
+        self.park_revenue = 0  # 停车收益
+        self.char_revenue = 0  # 充电收益
+        self.dist2pl = 0       # 停车场距离
+        self.alpha1 = sd.alpha1   # 收益系数
+        self.alpha2 = sd.alpha2   # 拒绝系数
+        self.alpha3 = sd.alpha3   # 步行时间系数
+        self.refuse_char = 0      # 拒绝充电数
+        self.refuse_park = 0      # 拒绝停车数
         self.request_num = 0
         self.states = None
-        self.observations = None
         self.action = None
 
     def reset(self, **kwargs):
@@ -78,9 +110,13 @@ class OPA(gym.Env):
         self._cumulative_rewards = 0
         self.termination = False
         self.states = {"demand": rmk[0], "type":req_type[0],"supply": np.zeros((park_lot_num, window_time))}
-        self.request_num = 0
+        self.request_num = 1
         self.infos = {}
-        self.request_num += 1
+        self.park_revenue = 0  # 停车收益
+        self.char_revenue = 0  # 充电收益
+        self.dist2pl = 0  # 停车场距离
+        self.refuse_char = 0  # 拒绝充电数
+        self.refuse_park = 0  # 拒绝停车数
         return self.states
 
     def step(self, action):
@@ -94,13 +130,22 @@ class OPA(gym.Env):
         And any internal state used by observe() or render()
         """
         if self.request_num < self.total_request:
-            if action == 324:
+            if action == sd.total_slot+1:
                 # 如果决绝了请求 不给予奖励
-                self.rewards = 0
-                print(f"已拒绝该请求:{self.request_num-1}")
-
+                self.rewards = -self.alpha2
+                if self.states["type"] == 0:
+                    self.refuse_park += 1
+                    print(f"已拒绝该停车请求:{self.request_num-1}")
+                else:
+                    self.refuse_char += 1
+                    print(f"已拒绝该充电请求:{self.request_num - 1}")
             else:
-                self.rewards = req_revenue[self.request_num-1]
+                if self.states["type"] == 0:
+                    self.park_revenue += revenue[self.request_num-1]
+                else:
+                    self.char_revenue += revenue[self.request_num-1]
+
+                self.rewards = self.alpha1 * revenue[self.request_num-1] - self.alpha3 * 0.01 / 1.2 * lzd[destination[self.request_num-1]-1][action]
 
                 # 更新states
                 self.states["supply"][action] = self.states["supply"][action] + self.states["demand"]
@@ -108,14 +153,14 @@ class OPA(gym.Env):
             next_states = {"demand": rmk[self.request_num], "type":req_type[self.request_num], "supply": self.states["supply"]}
             self.states = next_states
             self._cumulative_rewards += self.rewards
-            self.infos = {"req_id": self.request_num-1, "rewards": self.rewards,"_cumulative_rewards": self._cumulative_rewards}
+            self.infos = {"req_id": self.request_num-1, "objs": self.rewards,"cum_objs": self._cumulative_rewards,"park_rev:":self.park_revenue,"char_rev:":self.char_revenue,"refuse_park:":self.refuse_park,"refuse_char":self.refuse_char}
             print(self.infos)
             self.request_num += 1
-            return next_states, self.rewards, self._cumulative_rewards, self.termination
+            return next_states, self.rewards,self.termination
         else:
             self.termination = True
             print("所有请求分配完毕，本次episode结束...")
-            return self.states, self.rewards, self._cumulative_rewards, self.termination
+            return self.states, self.rewards,self.termination
 
 
 # 更新动作空间
@@ -139,5 +184,7 @@ def get_choice_set_base_state(state):
     # 字典是不可哈希的 因此不能作为键来使用 转化为可哈希的对象
     state_as_key = {"demand":tuple(demand),"type":demand_type,"supply":tuple(supply)}
     return choice_list,state_as_key
+
+
 
 
