@@ -1,0 +1,1 @@
+from src.utils.new_static_data import *
