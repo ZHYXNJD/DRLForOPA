@@ -129,16 +129,16 @@ class OPA(gym.Env):
         -infos
         And any internal state used by observe() or render()
         """
-        if self.request_num < self.total_request:
+        if self.request_num <= self.total_request:
             if action == sd.total_slot+1:
                 # 如果决绝了请求 不给予奖励
                 self.rewards = -self.alpha2
                 if self.states["type"] == 0:
                     self.refuse_park += 1
-                    print(f"已拒绝该停车请求:{self.request_num-1}")
+                    # print(f"已拒绝该停车请求:{self.request_num-1}")
                 else:
                     self.refuse_char += 1
-                    print(f"已拒绝该充电请求:{self.request_num - 1}")
+                    # print(f"已拒绝该充电请求:{self.request_num - 1}")
             else:
                 if self.states["type"] == 0:
                     self.park_revenue += revenue[self.request_num-1]
@@ -149,18 +149,23 @@ class OPA(gym.Env):
 
                 # 更新states
                 self.states["supply"][action] = self.states["supply"][action] + self.states["demand"]
-
-            next_states = {"demand": rmk[self.request_num], "type":req_type[self.request_num], "supply": self.states["supply"]}
+            if self.request_num < self.total_request:
+                next_states = {"demand": rmk[self.request_num], "type":req_type[self.request_num], "supply": self.states["supply"]}
+            else:
+                next_states = {"demand":"no more demand", "type":"no more demand",
+                               "supply": self.states["supply"]}
             self.states = next_states
             self._cumulative_rewards += self.rewards
             self.infos = {"req_id": self.request_num-1, "objs": self.rewards,"cum_objs": self._cumulative_rewards,"park_rev:":self.park_revenue,"char_rev:":self.char_revenue,"refuse_park:":self.refuse_park,"refuse_char":self.refuse_char}
-            print(self.infos)
+            if self.request_num == self.total_request:   # 只在最后一次输出
+                print(self.infos)
             self.request_num += 1
-            return next_states, self.rewards,self.termination
+            return next_states, self.rewards, self.termination, self.infos
+
         else:
             self.termination = True
             print("所有请求分配完毕，本次episode结束...")
-            return self.states, self.rewards,self.termination
+            return self.states, self.rewards,self.termination,self.infos
 
 
 # 更新动作空间

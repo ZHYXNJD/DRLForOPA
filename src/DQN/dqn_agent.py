@@ -7,6 +7,7 @@ from model import QNetwork
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
 
 BUFFER_SIZE = int(1e6)  # 存储的最大数据量
 # BATCH_SIZE = 64  # 每次训练的数据量
@@ -19,6 +20,7 @@ UPDATE_EVERY = 1  # 更新网络的频率
 
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+writer = SummaryWriter('./log')
 
 class ReplayBuffer:
     """
@@ -96,7 +98,7 @@ class Agent:
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # initialize time step for updating every UPDATE_EVERY steps
-        self.t_step = 0
+        # self.t_step = 0
 
     def step(self, state, action, reward, next_state, done,curr_invalid_choice,next_invalid_choice):
 
@@ -104,12 +106,12 @@ class Agent:
         self.memory.add(state, action, reward, next_state, done)
 
         # learn every UPDATE_EVERY time step
-        self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        if self.t_step == 0:
+        # self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        # if self.t_step == 0:
             # if enough memory are available in memory, get random substate and learn
-            if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA,curr_invalid_choice,next_invalid_choice)
+        if len(self.memory) > BATCH_SIZE:
+            experiences = self.memory.sample()
+            self.learn(experiences, GAMMA,curr_invalid_choice,next_invalid_choice)
 
     def act(self, agent_state,invalid_choice,eps=0.):
         """
@@ -171,6 +173,8 @@ class Agent:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+        writer.add_scalar('training_loss',loss.item())
 
         # ---------------------------update target network---------------------#
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)

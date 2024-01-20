@@ -1,4 +1,6 @@
 import gc
+import json
+from pathlib import Path
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,9 +9,8 @@ import torch
 from dqn_agent import Agent
 from OPA import OPA
 import static_data as sd
-
+from torch.utils.tensorboard import SummaryWriter
 import os
-os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 total_slot = sd.total_slot  # 泊位总数量
 park_slot_index = sd.ops_index  # 普通泊位索引
@@ -33,7 +34,7 @@ action_size = total_slot + 1
 
 agent = Agent(state_size=state_size, action_size=action_size, seed=0)
 env = OPA()
-
+writer = SummaryWriter('./log')
 
 def new_state(env_state):
     return np.concatenate([env_state["supply"].flatten(), env_state["demand"].flatten(),env_state["type"].flatten()])
@@ -49,7 +50,7 @@ def get_invalid_actions(env_state):
     return invalid_choice
 
 
-def dqn(n_episode=30, episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995,load_path=None):
     """
 
     :param n_episode: max number of training episodes
@@ -59,10 +60,17 @@ def dqn(n_episode=30, episode_length=total_request, eps_start=1.0, eps_end=0.01,
     :param eps_decay:
     :return:
     """
+    script_dir = Path(__file__).resolve().parent
+    log_dir = script_dir / 'log_dir'
+    data_dir = script_dir / 'data_dir'
 
-    scores = []
     eps = eps_start
-    for i_episode in range(1, n_episode + 1):
+
+    if load_path is not None:
+        agent.qnetwork_local.load_state_dict(torch.load(load_path))
+        print("已从第{}次开始加载".format(episode_start))
+
+    for i_episode in range(episode_start+1, n_episode + 1):
         state = env.reset()
         env_state = deepcopy(state)  # 因为是字典 需要深拷贝 否则会修改原state  这个state仍然是字典 可以通过关键字得到对应的值
         agent_state = new_state(env_state)
@@ -70,33 +78,57 @@ def dqn(n_episode=30, episode_length=total_request, eps_start=1.0, eps_end=0.01,
         for t in range(episode_length):
             curr_invalid_choice = get_invalid_actions(env_state)
             action = agent.act(agent_state,curr_invalid_choice,eps)
-            next_state, reward, done = env.step(action)
-            next_env_state = deepcopy(next_state)
-            next_invalid_choice = get_invalid_actions(next_env_state)
-            next_agent_state = new_state(next_env_state)
-            agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
-            agent_state = next_agent_state
-            env_state = next_env_state
+            next_state, reward, done,info = env.step(action)
+            # 将信息写入txt文件
+            with open(data_dir / f'episode_{i_episode}.txt',mode='a',encoding='utf-8') as f:
+                f.write(json.dumps(info)+'\n')
             score += reward
+            if t < episode_length-1:
+                next_env_state = deepcopy(next_state)
+                next_invalid_choice = get_invalid_actions(next_env_state)
+                next_agent_state = new_state(next_env_state)
+                agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
+                agent_state = next_agent_state
+                env_state = next_env_state
             if done:
+                f.close()
                 break
-        scores.append(score)
+        with open(data_dir / 'scores.txt',mode='a',encoding='utf-8') as f:
+            f.write(str(score)+'\n')
+            f.close()
+        writer.add_scalar('score:',score,n_episode)
         eps = max(eps_end, eps_decay * eps)
-        # if i_episode % 2 == 0:
         print('\rEpisode {}\t Score: {:.2f}'.format(i_episode, score), end="")
-
+        gc.collect()
         if i_episode % 5 == 0:
-            torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
-    return scores
+            torch.save(agent.qnetwork_local.state_dict(), log_dir / f'episode_{i_episode}_checkpoint.pth')
 
 
-scores = dqn()
+def check_log():
+    script_dir = Path(__file__).resolve().parent
+    log_dir = script_dir / 'log_dir'
+    weights = os.listdir(log_dir)
+    if len(weights) > 0:
+        num_of_episode = int(weights[-1].split("_")[1])
+        episode_path = log_dir / weights[-1]
+        eps_end = 0.01
+        eps_decay = 0.995
+        eps_start = max(eps_end,pow(eps_decay,num_of_episode))
+        dqn(n_episode=30,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
+    else:
+        dqn()
+
+
+check_log()
+
+# scores = dqn()
+
 
 # plot the scores
-fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(np.arange(len(scores)), scores)
-plt.ylabel('Score')
-plt.xlabel('Episode #')
-plt.show()
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# plt.plot(np.arange(len(scores)), scores)
+# plt.ylabel('Score')
+# plt.xlabel('Episode #')
+# plt.show()
 
