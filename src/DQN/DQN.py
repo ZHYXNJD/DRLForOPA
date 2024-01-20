@@ -49,7 +49,7 @@ def get_invalid_actions(env_state):
     return invalid_choice
 
 
-def dqn(n_episode=15, episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
+def dqn(n_episode=30, episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995):
     """
 
     :param n_episode: max number of training episodes
@@ -82,9 +82,10 @@ def dqn(n_episode=15, episode_length=total_request, eps_start=1.0, eps_end=0.01,
                 break
         scores.append(score)
         eps = max(eps_end, eps_decay * eps)
-        if i_episode % 2 == 0:
-            print('\rEpisode {}\t Score: {:.2f}'.format(i_episode, score), end="")
-        if i_episode % 2 == 0:
+        # if i_episode % 2 == 0:
+        print('\rEpisode {}\t Score: {:.2f}'.format(i_episode, score), end="")
+
+        if i_episode % 5 == 0:
             torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
     return scores
 
@@ -98,3 +99,4 @@ plt.plot(np.arange(len(scores)), scores)
 plt.ylabel('Score')
 plt.xlabel('Episode #')
 plt.show()
+
