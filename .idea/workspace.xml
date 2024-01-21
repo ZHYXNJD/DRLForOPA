@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="178a77a5-8a32-4ae5-bb29-1ff39eccba03" name="Changes" comment="----0120----添加文件夹----" />
+    <list default="true" id="178a77a5-8a32-4ae5-bb29-1ff39eccba03" name="Changes" comment="----0121----添加文件夹----">
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DQN/DQN.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/DQN/DQN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DQN/OPA.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/DQN/OPA.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DQN/dqn_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/DQN/dqn_agent.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -42,13 +48,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;G:/纵向/小论文/停车分配/DRL/src/demand&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "G:/纵向/小论文/停车分配/DRL/src/demand",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="G:\纵向\小论文\停车分配\DRL\src\demand" />
@@ -228,6 +235,9 @@
       <workItem from="1705730507653" duration="14159000" />
       <workItem from="1705754924123" duration="407000" />
       <workItem from="1705765094866" duration="1031000" />
+      <workItem from="1705804087850" duration="692000" />
+      <workItem from="1705805303941" duration="2381000" />
+      <workItem from="1705812437393" duration="11258000" />
     </task>
     <task id="LOCAL-00001" summary="----0119----使用DQN跑通----">
       <created>1705649822475</created>
@@ -278,7 +288,14 @@
       <option name="project" value="LOCAL" />
       <updated>1705765496799</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="----0121----添加文件夹----">
+      <created>1705804125091</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1705804125091</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -313,10 +330,18 @@
     <MESSAGE value="----0120----加载到云盘的版本----" />
     <MESSAGE value="----0120----加入tensorboard功能和断点重载功能----" />
     <MESSAGE value="----0120----添加文件夹----" />
-    <option name="LAST_COMMIT_MESSAGE" value="----0120----添加文件夹----" />
+    <MESSAGE value="----0121----添加文件夹----" />
+    <option name="LAST_COMMIT_MESSAGE" value="----0121----添加文件夹----" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/DQN/DQN.py</url>
+          <line>90</line>
+          <option name="timeStamp" value="16" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -325,18 +350,13 @@
         </breakpoint>
       </default-breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="PythonConfigurationType">
-        <watch expression="revenue" language="Python" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/DRL$.coverage" NAME=" Coverage Results" MODIFIED="1704790560709" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/envs" />
     <SUITE FILE_PATH="coverage/DRL$static_data.coverage" NAME="static_data Coverage Results" MODIFIED="1705391888945" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/DQN" />
-    <SUITE FILE_PATH="coverage/DRL$DQN.coverage" NAME="DQN Coverage Results" MODIFIED="1705753475965" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/DQN" />
+    <SUITE FILE_PATH="coverage/DRL$DQN.coverage" NAME="DQN Coverage Results" MODIFIED="1705823398110" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/DQN" />
     <SUITE FILE_PATH="coverage/DRL$OPA.coverage" NAME="OPA Coverage Results" MODIFIED="1705139041403" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/envs" />
     <SUITE FILE_PATH="coverage/DRL$main.coverage" NAME="main Coverage Results" MODIFIED="1705670792634" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/DRL$dqn_agent.coverage" NAME="dqn_agent Coverage Results" MODIFIED="1705496876457" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/DQN" />
+    <SUITE FILE_PATH="coverage/DRL$dqn_agent.coverage" NAME="dqn_agent Coverage Results" MODIFIED="1705807072720" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/DQN" />
   </component>
 </project>

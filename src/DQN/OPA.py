@@ -130,7 +130,7 @@ class OPA(gym.Env):
         And any internal state used by observe() or render()
         """
         if self.request_num <= self.total_request:
-            if action == sd.total_slot+1:
+            if action == sd.total_slot:
                 # 如果决绝了请求 不给予奖励
                 self.rewards = -self.alpha2
                 if self.states["type"] == 0:

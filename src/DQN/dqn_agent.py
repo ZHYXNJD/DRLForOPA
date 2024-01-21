@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 import random
 from collections import namedtuple, deque
@@ -9,6 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
+episode_length = 2120
 BUFFER_SIZE = int(1e6)  # 存储的最大数据量
 # BATCH_SIZE = 64  # 每次训练的数据量
 BATCH_SIZE = 32  # 每次训练的数据量
@@ -99,6 +102,7 @@ class Agent:
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, seed)
         # initialize time step for updating every UPDATE_EVERY steps
         # self.t_step = 0
+        self.step_ = 0
 
     def step(self, state, action, reward, next_state, done,curr_invalid_choice,next_invalid_choice):
 
@@ -108,10 +112,12 @@ class Agent:
         # learn every UPDATE_EVERY time step
         # self.t_step = (self.t_step + 1) % UPDATE_EVERY
         # if self.t_step == 0:
-            # if enough memory are available in memory, get random substate and learn
+        # if enough memory are available in memory, get random substate and learn
         if len(self.memory) > BATCH_SIZE:
             experiences = self.memory.sample()
-            self.learn(experiences, GAMMA,curr_invalid_choice,next_invalid_choice)
+            loss = self.learn(experiences, GAMMA,curr_invalid_choice,next_invalid_choice)
+            return loss
+        return 0
 
     def act(self, agent_state,invalid_choice,eps=0.):
         """
@@ -129,7 +135,8 @@ class Agent:
             action_values = self.qnetwork_local(agent_state)
             action_values[0][list(invalid_choice.__args__[0])] = 0
         self.qnetwork_local.train()
-
+        # count step 在最后一步返回该轮episode的loss
+        self.step_ += 1
         # epsilon-greedy action selection
         if random.random() > eps:
             return np.argmax(action_values.cpu().data.numpy())
@@ -137,7 +144,7 @@ class Agent:
             try:
                 return random.choice(list(set(range(self.action_size))-invalid_choice.__args__[0]))
             except:
-                return self.action_size
+                return self.action_size-1
             # return random.choice(range(self.action_size))
 
     def learn(self, experiences, gamma,curr_invalid_choice,next_invalid_choice):
@@ -158,26 +165,28 @@ class Agent:
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
         # get expected Q values from local model
-        temp_Q_expected = self.qnetwork_local(states)
-        Q_expected = torch.ones((32,1))
-        for i,each in enumerate(actions):
-            if each != self.action_size:
-                Q_expected[i] = temp_Q_expected[i][each]
-            else:
-                Q_expected[i] = 0
-        # Q_expected = self.qnetwork_local(states).gather(1, actions)
+        # temp_Q_expected = self.qnetwork_local(states)
+        # Q_expected = torch.ones((32,1))
+        # for i,each in enumerate(actions):
+        #     if each != self.action_size:
+        #         Q_expected[i] = temp_Q_expected[i][each]
+        #     else:
+        #         Q_expected[i] = 0
+
+        Q_expected = self.qnetwork_local(states).gather(1, actions)
         # Q_expected[0][list(curr_invalid_choice.__args__[0])] = 0
         # compute loss
         loss = F.mse_loss(Q_expected, Q_targets)
+        record_loss = deepcopy(loss.item())
         # minimize loss
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        writer.add_scalar('training_loss',loss.item())
-
         # ---------------------------update target network---------------------#
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+
+        return record_loss
 
     def soft_update(self, local_model, target_model, tau):
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):

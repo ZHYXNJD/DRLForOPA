@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
-from dqn_agent import Agent
+from dqn_agent import Agent,BATCH_SIZE
 from OPA import OPA
 import static_data as sd
 from torch.utils.tensorboard import SummaryWriter
@@ -75,6 +75,7 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
         env_state = deepcopy(state)  # 因为是字典 需要深拷贝 否则会修改原state  这个state仍然是字典 可以通过关键字得到对应的值
         agent_state = new_state(env_state)
         score = 0
+        loss = 0
         for t in range(episode_length):
             curr_invalid_choice = get_invalid_actions(env_state)
             action = agent.act(agent_state,curr_invalid_choice,eps)
@@ -87,22 +88,27 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
                 next_env_state = deepcopy(next_state)
                 next_invalid_choice = get_invalid_actions(next_env_state)
                 next_agent_state = new_state(next_env_state)
-                agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
+                loss += agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
                 agent_state = next_agent_state
                 env_state = next_env_state
             if done:
                 f.close()
                 break
+        loss /= (BATCH_SIZE*episode_length)
         with open(data_dir / 'scores.txt',mode='a',encoding='utf-8') as f:
-            f.write(str(score)+'\n')
+            f.write('episode_{}:'+str(score)+'\n'.format(i_episode))
             f.close()
-        writer.add_scalar('score:',score,n_episode)
+        writer.add_scalar('score:',score,i_episode)
+        writer.add_scalar('training_loss:',loss,i_episode)
         eps = max(eps_end, eps_decay * eps)
-        print('\rEpisode {}\t Score: {:.2f}'.format(i_episode, score), end="")
+        print('\rEpisode {}\t Score: {:.2f}\n'.format(i_episode, score), end="")
         gc.collect()
         if i_episode % 5 == 0:
             torch.save(agent.qnetwork_local.state_dict(), log_dir / f'episode_{i_episode}_checkpoint.pth')
-
+            try:
+                torch.save(agent.qnetwork_local.state_dict(), '/content/drive/MyDrive/DRL_DQN/allocate_info /' f'episode_{i_episode}_checkpoint.pth')
+            except:
+                pass
 
 def check_log():
     script_dir = Path(__file__).resolve().parent
@@ -114,7 +120,7 @@ def check_log():
         eps_end = 0.01
         eps_decay = 0.995
         eps_start = max(eps_end,pow(eps_decay,num_of_episode))
-        dqn(n_episode=30,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
+        dqn(n_episode=32,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
     else:
         dqn()
 
