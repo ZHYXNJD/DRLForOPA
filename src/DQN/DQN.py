@@ -120,7 +120,7 @@ def check_log():
         eps_end = 0.01
         eps_decay = 0.995
         eps_start = max(eps_end,pow(eps_decay,num_of_episode))
-        dqn(n_episode=32,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
+        dqn(n_episode=100,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
     else:
         dqn()
 

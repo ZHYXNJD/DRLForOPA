@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="178a77a5-8a32-4ae5-bb29-1ff39eccba03" name="Changes" comment="----0121----添加文件夹----">
+    <list default="true" id="178a77a5-8a32-4ae5-bb29-1ff39eccba03" name="Changes" comment="----0121----挂载到colab----">
       <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/DQN/DQN.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/DQN/DQN.py" afterDir="false" />
@@ -237,7 +237,7 @@
       <workItem from="1705765094866" duration="1031000" />
       <workItem from="1705804087850" duration="692000" />
       <workItem from="1705805303941" duration="2381000" />
-      <workItem from="1705812437393" duration="11258000" />
+      <workItem from="1705812437393" duration="11594000" />
     </task>
     <task id="LOCAL-00001" summary="----0119----使用DQN跑通----">
       <created>1705649822475</created>
@@ -295,7 +295,14 @@
       <option name="project" value="LOCAL" />
       <updated>1705804125091</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="----0121----挂载到colab----">
+      <created>1705826809036</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1705826809036</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -331,7 +338,8 @@
     <MESSAGE value="----0120----加入tensorboard功能和断点重载功能----" />
     <MESSAGE value="----0120----添加文件夹----" />
     <MESSAGE value="----0121----添加文件夹----" />
-    <option name="LAST_COMMIT_MESSAGE" value="----0121----添加文件夹----" />
+    <MESSAGE value="----0121----挂载到colab----" />
+    <option name="LAST_COMMIT_MESSAGE" value="----0121----挂载到colab----" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
