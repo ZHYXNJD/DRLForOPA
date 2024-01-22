@@ -20,7 +20,10 @@ class QNetwork(nn.Module):
     #     mask[valid_actions] = 1
     #     x = x * mask / sum(x * mask)
 
-    def forward(self,state):
+    def forward(self, state,invalid_choice):
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        return self.fc3(x)
+        x = self.fc3(x)
+        x[0][list(invalid_choice.__args__[0])] = -10000
+        x = F.softmax(x,dim=1)
+        return x

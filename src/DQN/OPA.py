@@ -93,6 +93,7 @@ class OPA:
         self.alpha3 = sd.alpha3  # 步行时间系数
         self.refuse_char = 0  # 拒绝充电数
         self.refuse_park = 0  # 拒绝停车数
+        self.wrong_num = 0
         self.request_num = 0
         self.states = None
         self.action = None
@@ -120,6 +121,7 @@ class OPA:
         self.dist2pl = 0  # 停车场距离
         self.refuse_char = 0  # 拒绝充电数
         self.refuse_park = 0  # 拒绝停车数
+        self.wrong_num = 0
         self.seed = seed
         return self.states
 
@@ -146,6 +148,7 @@ class OPA:
             elif action in list(invalid_action.__args__[0]):
                 print("分配错误，给与惩罚")
                 self.rewards = -1000000
+                self.wrong_num += 1
             else:
                 if self.states["type"] == 0:
                     self.park_revenue += revenue[self.request_num - 1]
@@ -165,10 +168,13 @@ class OPA:
                                "supply": self.states["supply"]}
             self.states = next_states
             self._cumulative_rewards += self.rewards
+
             self.infos = {"req_id": self.request_num - 1, "objs": self.rewards, "cum_objs": self._cumulative_rewards,
                           "park_rev": self.park_revenue, "char_rev": self.char_revenue,
                           "refuse_park": self.refuse_park, "refuse_char": self.refuse_char}
-            print(self.infos)
+            if action in list(invalid_action.__args__[0]):
+                print(self.infos)
+                print(f"wrong_num:{self.wrong_num}")
             self.request_num += 1
             return next_states, self.rewards, self.termination, self.infos
 

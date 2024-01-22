@@ -46,7 +46,7 @@ def get_invalid_actions(env_state):
     demand_type = env_state["type"]
     temp_data = pd.DataFrame(supply).loc[slot_index[demand_type]] + demand
     valid_choice = temp_data[temp_data.apply(lambda row: all(x < 2 for x in row), axis=1)].index.values   # 返回可用的泊位 作为新的动作空间
-    invalid_choice = list[set(np.arange(0,action_size))-set(valid_choice)]
+    invalid_choice = list[set(np.arange(0,action_size-1))-set(valid_choice)]
     return invalid_choice
 
 
@@ -109,6 +109,7 @@ def dqn(n_episode=30, episode_start=0,episode_length=total_request, eps_start=1.
                 loss += agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
                 agent_state = next_agent_state
                 env_state = next_env_state
+                gc.collect()
                 # print("episode:{},step{},loss:{}".format(i_episode,t,loss))
             if done:
                 f.close()
