@@ -21,9 +21,8 @@ LR = 5e-4  # 网络学习率
 UPDATE_EVERY = 1  # 更新网络的频率
 # UPDATE_EVERY = 4  # 更新网络的频率
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-writer = SummaryWriter('./log')
 
 class ReplayBuffer:
     """
@@ -53,21 +52,21 @@ class ReplayBuffer:
         """
         :return: randomly sample a batch of experiences from memory
         """
-        # experiences = random.sample(self.memory, k=self.batch_size)
-        # states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
-        # actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
-        # rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
-        # next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
-        #     device)
-        # dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
-        #     device)
-
         experiences = random.sample(self.memory, k=self.batch_size)
-        states = torch.tensor(np.vstack([e.state for e in experiences if e is not None])).float()
-        actions = torch.tensor(np.vstack([e.action for e in experiences if e is not None])).long()
-        rewards = torch.tensor(np.vstack([e.reward for e in experiences if e is not None])).float()
-        next_states = torch.tensor(np.vstack([e.next_state for e in experiences if e is not None])).float()
-        dones = torch.tensor(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float()
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(
+            device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(
+            device)
+
+        # experiences = random.sample(self.memory, k=self.batch_size)
+        # states = torch.tensor(np.vstack([e.state for e in experiences if e is not None])).float()
+        # actions = torch.tensor(np.vstack([e.action for e in experiences if e is not None])).long()
+        # rewards = torch.tensor(np.vstack([e.reward for e in experiences if e is not None])).float()
+        # next_states = torch.tensor(np.vstack([e.next_state for e in experiences if e is not None])).float()
+        # dones = torch.tensor(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float()
 
         return (states, actions, rewards, next_states, dones)
 
@@ -92,10 +91,10 @@ class Agent:
         self.seed = seed
 
         # Q-Network
-        # self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
-        # self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
-        self.qnetwork_local = QNetwork(state_size, action_size, seed)
-        self.qnetwork_target = QNetwork(state_size, action_size, seed)
+        self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
+        self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
+        # self.qnetwork_local = QNetwork(state_size, action_size, seed)
+        # self.qnetwork_target = QNetwork(state_size, action_size, seed)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
         # Replay memory
@@ -128,8 +127,8 @@ class Agent:
         :return: return actions for given state per policy
         """
 
-        # agent_state = torch.from_numpy(agent_state).float().unsqueeze(0).to(device)
-        agent_state = torch.tensor(agent_state).float().unsqueeze(0)
+        agent_state = torch.from_numpy(agent_state).float().unsqueeze(0).to(device)
+        # agent_state = torch.tensor(agent_state).float().unsqueeze(0)
         self.qnetwork_local.eval()
         with torch.no_grad():
             action_values = self.qnetwork_local(agent_state)

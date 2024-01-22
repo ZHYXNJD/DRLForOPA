@@ -34,7 +34,7 @@ action_size = total_slot + 1
 
 agent = Agent(state_size=state_size, action_size=action_size, seed=0)
 env = OPA()
-writer = SummaryWriter('./log')
+writer = SummaryWriter('./newlog')
 
 def new_state(env_state):
     return np.concatenate([env_state["supply"].flatten(), env_state["demand"].flatten(),env_state["type"].flatten()])
@@ -61,8 +61,8 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
     :return:
     """
     script_dir = Path(__file__).resolve().parent
-    log_dir = script_dir / 'log_dir'
-    data_dir = script_dir / 'data_dir'
+    log_dir = script_dir / 'new_weights'
+    data_dir = script_dir / 'new_data_dir'
 
     eps = eps_start
 
@@ -91,28 +91,29 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
                 loss += agent.step(agent_state, action, reward, next_agent_state, done,curr_invalid_choice,next_invalid_choice)
                 agent_state = next_agent_state
                 env_state = next_env_state
+                # print("episode:{},step{},loss:{}".format(i_episode,t,loss))
             if done:
                 f.close()
                 break
-        loss /= (BATCH_SIZE*episode_length)
+        loss = loss / (BATCH_SIZE*episode_length) / 1e10
+        print("episode_average_loss:{}".format(loss))
         with open(data_dir / 'scores.txt',mode='a',encoding='utf-8') as f:
             f.write('episode_{}:'+str(score)+'\n'.format(i_episode))
             f.close()
         writer.add_scalar('score:',score,i_episode)
-        writer.add_scalar('training_loss:',loss,i_episode)
+        writer.close()
+        writer.add_scalar('loss:',loss,i_episode)
+        writer.close()
         eps = max(eps_end, eps_decay * eps)
         print('\rEpisode {}\t Score: {:.2f}\n'.format(i_episode, score), end="")
         gc.collect()
         if i_episode % 5 == 0:
             torch.save(agent.qnetwork_local.state_dict(), log_dir / f'episode_{i_episode}_checkpoint.pth')
-            try:
-                torch.save(agent.qnetwork_local.state_dict(), '/content/drive/MyDrive/DRL_DQN/allocate_info /' f'episode_{i_episode}_checkpoint.pth')
-            except:
-                pass
+
 
 def check_log():
     script_dir = Path(__file__).resolve().parent
-    log_dir = script_dir / 'log_dir'
+    log_dir = script_dir / 'new_weights'
     weights = os.listdir(log_dir)
     if len(weights) > 0:
         num_of_episode = int(weights[-1].split("_")[1])
@@ -120,6 +121,7 @@ def check_log():
         eps_end = 0.01
         eps_decay = 0.995
         eps_start = max(eps_end,pow(eps_decay,num_of_episode))
+        print("episode_path:{}".format(episode_path))
         dqn(n_episode=150,episode_start=num_of_episode,episode_length=total_request,eps_start=eps_start,eps_end=eps_end,eps_decay=eps_decay,load_path=episode_path)
     else:
         dqn()
