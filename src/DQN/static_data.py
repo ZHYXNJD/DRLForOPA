@@ -93,3 +93,14 @@ slot2dest[1,pl1_total+pl2_total:] = 380
 slot2dest[2,:pl1_total] = 600
 slot2dest[2,pl1_total:pl1_total+pl2_total] = 400
 slot2dest[2,pl1_total+pl2_total:] = 560
+
+
+#-------------------------slot-parkinglot----------------------------#
+pl1_ops = np.arange(pl1_total_slots)
+pl1_cps = np.arange(pl1_total_slots,pl1_total)
+
+pl2_ops = np.arange(pl1_total,pl1_total+pl2_total_slots)
+pl2_cps = np.arange(pl1_total+pl2_total_slots,pl1_total+pl2_total)
+
+pl3_ops = np.arange(pl1_total+pl2_total,pl1_total+pl2_total+pl3_total_slots)
+pl3_cps = np.arange(pl1_total+pl2_total+pl3_total_slots,pl1_total+pl2_total+pl3_total)

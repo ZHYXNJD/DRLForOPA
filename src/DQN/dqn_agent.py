@@ -15,7 +15,7 @@ episode_length = 2120
 BUFFER_SIZE = int(1e6)  # 存储的最大数据量
 # BATCH_SIZE = 64  # 每次训练的数据量
 BATCH_SIZE = 32  # 每次训练的数据量
-GAMMA = 0.99  # 衰减率 discount factor
+GAMMA = 1  # 衰减率 discount factor
 TAU = 1e-3  # target network 软更新参数
 LR = 5e-4  # 网络学习率
 UPDATE_EVERY = 1  # 更新网络的频率
@@ -132,12 +132,13 @@ class Agent:
         self.qnetwork_local.eval()
         with torch.no_grad():
             action_values = self.qnetwork_local(agent_state)
-            action_values[0][list(invalid_choice.__args__[0])] = 0
+            # action_values[0][list(invalid_choice.__args__[0])] = 0
         self.qnetwork_local.train()
-        # count step 在最后一步返回该轮episode的loss
-        self.step_ += 1
+
         # epsilon-greedy action selection
         if random.random() > eps:
+            temp_action_values = deepcopy(action_values)
+            temp_action_values[0][list(invalid_choice.__args__[0])] = -100000
             return np.argmax(action_values.cpu().data.numpy())
         else:
             try:

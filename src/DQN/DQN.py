@@ -45,12 +45,29 @@ def get_invalid_actions(env_state):
     supply = env_state["supply"]
     demand_type = env_state["type"]
     temp_data = pd.DataFrame(supply).loc[slot_index[demand_type]] + demand
-    valid_choice = temp_data[temp_data.apply(lambda row: all(x < 2 for x in row), axis=1)].index.values  # 返回可用的泊位 作为新的动作空间
+    valid_choice = temp_data[temp_data.apply(lambda row: all(x < 2 for x in row), axis=1)].index.values   # 返回可用的泊位 作为新的动作空间
     invalid_choice = list[set(np.arange(0,action_size))-set(valid_choice)]
     return invalid_choice
 
 
-def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995,load_path=None):
+def get_parking_lot_(slot_index, req_type,):
+    if req_type == 0:   # 普通请求
+        if slot_index in sd.pl1_ops:
+            return 1
+        elif slot_index in sd.pl2_ops:
+            return 2
+        else:
+            return 3
+    else:
+        if slot_index in sd.pl1_cps:
+            return 1
+        elif slot_index in sd.pl2_cps:
+            return 2
+        else:
+            return 3
+
+
+def dqn(n_episode=30, episode_start=0,episode_length=total_request, eps_start=1.0, eps_end=0.01, eps_decay=0.995,load_path=None):
     """
 
     :param n_episode: max number of training episodes
@@ -79,10 +96,11 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
         for t in range(episode_length):
             curr_invalid_choice = get_invalid_actions(env_state)
             action = agent.act(agent_state,curr_invalid_choice,eps)
-            next_state, reward, done,info = env.step(action)
+            parking_lot_num = get_parking_lot_(action,env_state["type"])
+            next_state, reward, done,info = env.step(action,curr_invalid_choice)
             # 将信息写入txt文件
             with open(data_dir / f'episode_{i_episode}.txt',mode='a',encoding='utf-8') as f:
-                f.write(json.dumps(info)+'\n')
+                f.write(json.dumps(info)+ ",assigned_lot:{} \n".format(parking_lot_num))
             score += reward
             if t < episode_length-1:
                 next_env_state = deepcopy(next_state)
@@ -98,7 +116,7 @@ def dqn(n_episode=30, episode_start=1,episode_length=total_request, eps_start=1.
         loss = loss / (BATCH_SIZE*episode_length) / 1e10
         print("episode_average_loss:{}".format(loss))
         with open(data_dir / 'scores.txt',mode='a',encoding='utf-8') as f:
-            f.write('episode_{}:'+str(score)+'\n'.format(i_episode))
+            f.write('episode_{}:'.format(i_episode) + str(score)+'\n')
             f.close()
         writer.add_scalar('score:',score,i_episode)
         writer.close()
