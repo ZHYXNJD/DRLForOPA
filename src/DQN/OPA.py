@@ -44,7 +44,7 @@ charge_fee = pd.read_csv(charge_fee_path)[:window_time]
 destination = req_info['dest']
 revenue = []
 for i in range(2120):
-    revenue.append((1 + 1.5 * np.sum(rmk[i, :]) + req_type[i] * np.matmul(rmk[i, :], charge_fee / 4)).values[0])
+    revenue.append(int((1 + 1.5 * np.sum(rmk[i, :]) + req_type[i] * np.matmul(rmk[i, :], charge_fee / 4)).values[0]))
 
 lzd = sd.slot2dest  # dest_num * slot_num
 

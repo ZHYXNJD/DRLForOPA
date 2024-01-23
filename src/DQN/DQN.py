@@ -45,7 +45,7 @@ def get_invalid_actions(env_state):
     supply = env_state["supply"]
     demand_type = env_state["type"]
     temp_data = pd.DataFrame(supply).loc[slot_index[demand_type]] + demand
-    valid_choice = temp_data[temp_data.apply(lambda row: all(x < 2 for x in row), axis=1)].index.values   # 返回可用的泊位 作为新的动作空间
+    valid_choice = temp_data[temp_data.apply(lambda row: all(x < 2 for x in row), axis=1)].index.values
     invalid_choice = list[set(np.arange(0,action_size-1))-set(valid_choice)]
     return invalid_choice
 

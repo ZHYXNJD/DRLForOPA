@@ -131,18 +131,16 @@ class Agent:
         # agent_state = torch.tensor(agent_state).float().unsqueeze(0)
         self.qnetwork_local.eval()
         with torch.no_grad():
-            action_values = self.qnetwork_local(agent_state,invalid_choice)
-            # action_values[0][list(invalid_choice.__args__[0])] = 0
+            action_values = self.qnetwork_local(agent_state)
+            action_values[0][list(invalid_choice.__args__[0])] = -float("inf")
         self.qnetwork_local.train()
 
         # epsilon-greedy action selection
         if random.random() > eps:
-            # temp_action_values = deepcopy(action_values)
-            # temp_action_values[0][list(invalid_choice.__args__[0])] = -100000
             return np.argmax(action_values.cpu().data.numpy())
         else:
             try:
-                return random.choice(list(set(range(self.action_size))-invalid_choice.__args__[0]))
+                return random.choice(list(set(range(self.action_size))-set(list(invalid_choice.__args__[0]))))
             except:
                 return self.action_size-1
             # return random.choice(range(self.action_size))
@@ -159,7 +157,9 @@ class Agent:
         states, actions, rewards, next_states, dones = experiences
 
         # get max predicted Q values (for next states) from target model
-        Q_targets_next = self.qnetwork_target(next_states,next_invalid_choice).detach().max(1)[0].unsqueeze(1)
+        Q_targets_next = self.qnetwork_target(next_states)
+        Q_targets_next[0][list(next_invalid_choice.__args__[0])] = -float("inf")
+        Q_targets_next = Q_targets_next.detach().max(1)[0].unsqueeze(1)
         # Q_targets_next[0][list(next_invalid_choice.__args__[0])] = 0
         # compute Q targets for current states
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
@@ -173,7 +173,7 @@ class Agent:
         #     else:
         #         Q_expected[i] = 0
 
-        Q_expected = self.qnetwork_local(states,curr_invalid_choice).gather(1, actions)
+        Q_expected = self.qnetwork_local(states).gather(1, actions)
         # Q_expected[0][list(curr_invalid_choice.__args__[0])] = 0
         # compute loss
         loss = F.mse_loss(Q_expected, Q_targets)
